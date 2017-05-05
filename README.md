@@ -43,7 +43,7 @@ _场景创建及渲染_
 
 ```Java
 // 创建一个Surface对象
-MagicSurface surface = new MagicSurface(view) // view为要进行动画操作的View
+MagicSurface surface = new MagicSurface(view) // view为要进行动画操作的View
         .setVisible(true)                // 设置模型是否要渲染 (默认为true)
         .setShininess(64)                // 设置模型材质光泽度,默认64; 数值越大越光滑, 只对光照生效,无光照效果可忽略.
         .setGrid(30, 40)                 // 设置网格模型行列数,行列数越多效果越精致,但也更耗性能; 默认 30,30
@@ -80,6 +80,7 @@ SurfaceModel中的顶点集合，是一个 r(行) * c(列) 的一个矩形网格
 2. 顶点颜色。修改网格上某一点的顶点颜色后，该点上的最终颜色会按 "_顶点最终颜色计算过程_" 那样进行变化。<br/>
 
 <br/>
+
 _顶点最终颜色计算过程 为:_
 
 **顶点最终颜色 = 原始颜色 * 顶点颜色 * 场景环境光颜色 + 原始颜色 * 顶点颜色 * 灯光颜色**<br/>
@@ -88,12 +89,13 @@ _顶点最终颜色计算过程 为:_
 场景环境光颜色：默认为rgba(1,1,1,1); 可以由 MagicSceneUpdater 修改.<br/>
 灯光颜色：构建MagicScene时传入的灯光对象集合，在模型对应顶点产生的光照颜色值; 如果未设置灯光，灯光颜色值为rgba(0,0,0,0); 可以由 MagicSceneUpdater 修改.
 
-颜色相乘算法为：(其中r,g,b,a都为0~1的浮点数, 对应整形颜色值0~255)<br/>
+颜色相乘算法为：(其中r,g,b,a都为0 ~ 1的浮点数, 对应整形颜色值0 ~ 255)<br/>
 color1(r1, g1, b1, a1) * color2(r2, g2, b2, a2) == color3(r1* r2, g1* g2, b1* b2, a1* a2) <br/>
-颜色相加算法为：(其中r,g,b,a都为0~1的浮点数, 对应整形颜色值0~255)<br/>
+颜色相加算法为：(其中r,g,b,a都为0 ~ 1的浮点数, 对应整形颜色值0 ~ 255)<br/>
 color1(r1, g1, b1, a1) + color2(r2, g2, b2, a2) == color3(r1+r2, g1+g2, b1+b2, a1+a2)<br/>
 
 <br/>
+
 _场景坐标(即openGL坐标):_
 
 跟坐标相关的动画操作都使用场景坐标，与Android的View的坐标系无关<br/>
@@ -102,6 +104,7 @@ MagicSurface网格模型各点坐标z轴默认为0<br/>
 MagicSurfaceView 及 MagicSurface 相关点场景坐标获取方法 参考 "_**5. 模型更新器 MagicSurfaceModelUpdater**_"
 
 <br/>
+
 _关于偏移量:_
 
 当一个MagicSurface上同时使用模型更新器和矩阵更新器时.<br />
@@ -109,6 +112,7 @@ _关于偏移量:_
 偏移量具体说明，参考 模型更新器 和 矩阵更新器。
 
 <br/>
+
 _Updater性能优化:_
 
 MagicSceneUpdater, MagicSurfaceModelUpdater及MagicSurfaceMatrixUpdater 都为 MagicUpdater 的子类<br/>
@@ -245,12 +249,12 @@ surface.getScene().getWidth();
 // 获取 MagicSurfaceView 在openGL坐标系中的高度
 surface.getScene().getHeight();
 
-// 获取 MagicSurfaceView 某点在openGL坐标系中的坐标并存入pos
-// 比如 surface.getScene().getPosition(0.0f, 0.0f, pos); 获取 MagicSurfaceView 左上角的坐标
-// 比如 surface.getScene().getPosition(0.0f, 1.0f, pos); 获取 MagicSurfaceView 左下角的坐标
-// 比如 surface.getScene().getPosition(1.0f, 0.0f, pos); 获取 MagicSurfaceView 右上角的坐标
-// 比如 surface.getScene().getPosition(1.0f, 1.0f, pos); 获取 MagicSurfaceView 右下角的坐标
-surface.getScene().getPosition(ratioX, ratioY, pos);
+// 获取 MagicSurfaceView 某点在openGL坐标系中的坐标并存入pos
+// 比如 surface.getScene().getPosition(0.0f, 0.0f, pos); 获取 MagicSurfaceView 左上角的坐标
+// 比如 surface.getScene().getPosition(0.0f, 1.0f, pos); 获取 MagicSurfaceView 左下角的坐标
+// 比如 surface.getScene().getPosition(1.0f, 0.0f, pos); 获取 MagicSurfaceView 右上角的坐标
+// 比如 surface.getScene().getPosition(1.0f, 1.0f, pos); 获取 MagicSurfaceView 右下角的坐标
+surface.getScene().getPosition(ratioX, ratioY, pos);
 
 
 
@@ -266,13 +270,13 @@ surface.getModel().getRowLineCount();
 // 获取 MagicSurface 网格模型总列数
 surface.getModel().getColLineCount();
 
-// 获取 MagicSurface 网格模型 r行 c列 在openGL坐标系中的坐标并存入pos
+// 获取 MagicSurface 网格模型 r行 c列 在openGL坐标系中的坐标并存入pos
 // 注: 此方法包含偏移量，模型中心在 场景中心+偏移量 的位置; 偏移量是在创建SurfaceView时根据传入的View与MagicSurfaceView相对位置自动生成.
-surface.getModel().getPosition(r, c, pos);
+surface.getModel().getPosition(r, c, pos);
 
-// 获取 MagicSurface 网格模型 r行 c列 在openGL坐标系中的坐标并存入pos
+// 获取 MagicSurface 网格模型 r行 c列 在openGL坐标系中的坐标并存入pos
 // 注: 此方法不包含偏移量，模型中心在场景中心处
-surface.getModel().getPositionExcludeOffset(r, c, pos);
+surface.getModel().getPositionExcludeOffset(r, c, pos);
 
 ```
 
