@@ -17,8 +17,9 @@ dependencies {
 ---
 _**2. 一些示例效果**_
 
-此文档只做一些简单说明, 具体使用方法还请参考 示例项目: <https://github.com/gplibs/android-magic-surface-view-sample> <br/>
-
+此文档只做一些简单说明, 具体使用方法还请参考 示例项目.<br/>
+示例项目源码: <https://github.com/gplibs/android-magic-surface-view-sample> <br/>
+示例项目apk: [Download](https://github.com/gplibs/resources/raw/master/android/magic-surface-view/apk/magic-surface-view-sample-release.apk)
 
 _以下是示例项目中的一些效果:_
 
@@ -28,7 +29,7 @@ _以下是示例项目中的一些效果:_
 模仿MacWindow动画 :<br/>
 ![image](https://github.com/gplibs/resources/raw/master/android/magic-surface-view/readme/mac_window_anim.gif) 
 
-其他几个示例效果，可以下载项目运行查看。
+其他几个示例效果，可以下载示例项目运行查看。
 
 <br />
 
