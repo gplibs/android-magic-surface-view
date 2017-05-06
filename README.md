@@ -17,7 +17,7 @@ dependencies {
 ---
 _**2. 一些示例效果**_
 
-此文档只做一些简单说明, 具体使用方法还请参考[示例项目](https://github.com/gplibs/android-magic-surface-view-sample)<br/>
+此文档只做一些简单说明, 具体使用方法还请参考 示例项目: <https://github.com/gplibs/android-magic-surface-view-sample> <br/>
 
 
 _以下是示例项目中的一些效果:_
