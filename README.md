@@ -8,7 +8,7 @@ _gradle:_
 
 ```Gradle
 dependencies {
-    compile 'com.gplibs:magic-surface-view:1.0.0'
+    compile 'com.gplibs:magic-surface-view:1.1.0'
 }
 ```
 
@@ -21,7 +21,7 @@ _**2. 一些示例效果**_
 示例项目源码: <https://github.com/gplibs/android-magic-surface-view-sample> <br/>
 示例项目apk: [Download](https://github.com/gplibs/resources/raw/master/android/magic-surface-view/apk/magic-surface-view-sample-release.apk)
 
-_以下是示例项目中的一些效果:_
+_以下是示例项目中的一些效果 (gif图片帧数低，使用真机运行效果更好):_
 
 启动及退出动画 :<br/>
 ![image](https://github.com/gplibs/resources/raw/master/android/magic-surface-view/readme/launch.gif) 
@@ -29,7 +29,10 @@ _以下是示例项目中的一些效果:_
 模仿MacWindow动画 :<br/>
 ![image](https://github.com/gplibs/resources/raw/master/android/magic-surface-view/readme/mac_window_anim.gif) 
 
-其他几个示例效果，可以下载示例项目运行查看。
+碎片化曲面动画 :<br/>
+![image](https://github.com/gplibs/resources/raw/master/android/magic-surface-view/readme/scrap_anim.gif) 
+
+其他示例效果，可以下载示例项目运行查看。
 
 <br />
 
@@ -43,7 +46,7 @@ _**3. 概述**_
 _场景创建及渲染_
 
 ```Java
-// 创建一个Surface对象
+// 创建一个MagicSurface对象
 MagicSurface surface = new MagicSurface(view) // view为要进行动画操作的View
         .setVisible(true)                // 设置模型是否要渲染 (默认为true)
         .setShininess(64)                // 设置模型材质光泽度,默认64; 数值越大越光滑, 只对光照生效,无光照效果可忽略.
@@ -53,12 +56,21 @@ MagicSurface surface = new MagicSurface(view) // view为要进行动画操作的
         .setModelUpdater(modelUpdater)   // 设置模型更新器, 可以执行顶点坐标及颜色相关动画操作; 详情见 "5. 模型更新器 MagicSurfaceModelUpdater"
         .setMatrixUpdater(matrixUpdater) // 设置矩阵更新器, 可以执行矩阵变换相关动画操作; 详情见 "6. 矩阵更新器 MagicSurfaceMatrixUpdater"
         .drawGrid(false);                // 设置绘制时是否只绘制网络，默认false. (调试动画找问题时可以只画网格，可能有点帮助)
+
+// 创建一个多曲面MagicMultiSurface对象
+MagicMultiSurface multiSurface = new MagicMultiSurface(view, 20, 10) // view为要进行动画操作的View， (20，10)表示将曲面分解成 20行 10列 共两百个子曲面
+        .setUpdater(mMultiUpdater)       // 设置 MagicMultiSurfaceUpdater 对子曲面进行动画操作 详情见 "7. MagicMultiSurfaceUpdater"
+        .setVisible(true)                // 设置模型是否要渲染 (默认为true)
+        .setShininess(64)                // 设置模型材质光泽度,默认64; 数值越大越光滑, 只对光照生效,无光照效果可忽略.
+        .setEnableBlend(true)            // 是否开启混合，为透明对象时需开启，(默认为开启)
+        .setEnableDepthTest(true);       // 是否开启深度测试，开启后会按三维坐标正常显示，如果关闭，绘制时将覆盖之前已经绘制的东西，(默认为开启)
+
 // 创建场景
-MagicScene scene = new MagicSceneBuilder(mSurfaceView)
-        .addSurfaces(surface)            // 添加Surface对象；可以添加多个 如: addSurfaces(surface, surface1, surface2)
-        .ambientColor(0XFF222222)        // 设置场景环境光, 默认为0XFFFFFFFF
-        .addLights(light)                // 添加光源对象,类型可以为PointLight或者DirectionalLight; 可以添加多个 如: addLights(light, light1, light2)
-        .setUpdater(sceneUpdater)        // 添加场景更新器, 可以执行场景相关变量的动画操作; 详情见 "4. 场景更新器 MagicSceneUpdater"
+MagicScene scene = new MagicSceneBuilder(myMagicSurfaceView)
+        .addSurfaces(surface, multiSurface) // 添加Surface对象；可以添加多个 如: addSurfaces(surface, surface1, surface2)
+        .ambientColor(0XFF222222)           // 设置场景环境光, 默认为0XFFFFFFFF
+        .addLights(light)                   // 添加光源对象,类型可以为PointLight或者DirectionalLight; 可以添加多个 如: addLights(light, light1, light2)
+        .setUpdater(sceneUpdater)           // 添加场景更新器, 可以执行场景相关变量的动画操作; 详情见 "4. 场景更新器 MagicSceneUpdater"
         .build();
 // 渲染
 myMagicSurfaceView.render(scene);
@@ -346,3 +358,68 @@ public class MyMatrixUpdater extends MagicSurfaceMatrixUpdater {
 ```
 
 <br />
+
+_**6. MagicMultiSurfaceUpdater**_
+
+MagicMultiSurfaceUpdater 对 MagicMultiSurface 中每个子模型进行矩阵变换及颜色值修改，
+
+调用过程为 willStart -> didStart -> (updateBegin -> (update [遍历每个子模型]) -> updateEnd [此部分通过notifyChanged触发，循环调用直到 调用 Updater stop方法]) -> didStop
+
+```Java
+public class MyMultiSurfaceUpdater extends MagicMultiSurfaceUpdater {
+
+    // 在绘制第一帧之前调用 (可以在此方法里进行一些初始化操作)
+    @Override
+    protected abstract void willStart(MagicMultiSurface surface) {
+    }
+
+    // 在开始绘制后调用（绘制第一帧后调用，一般动画可以在此开始） 
+    // 动画有更新时，需调用 notifyChanged()方法 通知框架可以调用 update 相关方法进行更新。
+    @Override
+    protected abstract void didStart(MagicMultiSurface surface) {
+    }
+
+    // 当调用 updater stop方法之后，真正停止后会回调此方法
+    @Override
+    protected abstract void didStop(MagicMultiSurface surface) {
+    }
+
+    // 每次各子模型更新之前调用
+    @Override
+    protected abstract void updateBegin(MagicMultiSurface surface) {
+    }
+
+    /**
+     * 修改r行 c列处子模型的矩阵matrix， 及子模型颜色color
+     * @param surface
+     * @param r 行
+     * @param c 列
+     * @param matrix 矩阵
+     * @param offset 偏移量 (跟MagicSurfaceMatrixUpdater中偏移量一样的意义，只是此处为某个子模型的偏移量)
+     * @param color 默认值为 rgba(1,1,1,1), 计算完成后的新颜色要更新到此变量 模型最终颜色计算方法参考 "顶点最终颜色计算过程"
+     */
+    @Override
+    protected abstract void update(MagicMultiSurface surface, int r, int c, float[] matrix, Vec offset, Vec color) {
+        // 重置矩阵
+        // reset(matrix);
+
+        // 平移
+        // translate(matrix, offset);
+
+        // 旋转
+        //rotate(matrix, mAxis, angle);
+
+        // 缩放
+        //scale(matrix, mScale);
+
+        // 修改颜色
+        // color.setColor(xxx);
+    }
+
+    // 每次所有子模型更新完成后调用
+    @Override
+    protected abstract void updateEnd(MagicMultiSurface surface) {
+        // 可以在此方法里判断动画是否结束，结束需调用 stop()方法，以结束updater.
+    }
+}
+```
