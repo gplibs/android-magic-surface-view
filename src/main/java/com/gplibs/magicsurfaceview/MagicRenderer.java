@@ -10,19 +10,11 @@ import javax.microedition.khronos.opengles.GL10;
 class MagicRenderer implements GLSurfaceView.Renderer {
 
     private MagicScene mScene;
-    private int mPause = 0;
-    private boolean mDestroy = false;
-    private MagicRendererListener mListener;
+    private boolean mOnDestroyed = false;
+    private boolean mReleased = false;
+    private boolean mNeedRestore = false;
 
     MagicRenderer() {
-    }
-
-    void setListener(MagicRendererListener listener) {
-        this.mListener = listener;
-    }
-
-    void pause() {
-        mPause = 1;
     }
 
     void render(final MagicScene scene) {
@@ -30,7 +22,6 @@ class MagicRenderer implements GLSurfaceView.Renderer {
             mScene.release();
         }
         mScene = scene;
-        mPause = 0;
     }
 
     MagicScene getScene() {
@@ -39,15 +30,16 @@ class MagicRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        mPause = 0;
+        mReleased = false;
+        mOnDestroyed = false;
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         if (mScene != null && mScene.isReady()) {
             mScene.updateFrustum();
-            if (mDestroy) {
-                mDestroy = false;
+            if (mNeedRestore) {
+                mNeedRestore = false;
                 mScene.restore();
             }
         }
@@ -63,9 +55,6 @@ class MagicRenderer implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
         try {
             MagicSurfaceViewLock.lock();
-            if (checkPaused()) {
-                return;
-            }
             runOnDraw();
             if (mScene != null && mScene.isReady()) {
                 mScene.draw();
@@ -77,33 +66,32 @@ class MagicRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    private boolean checkPaused() {
-        if (mPause == 1) {
-            mPause++;
-            if (mScene != null && mScene.isReady()) {
-                mScene.clearGLResource();
-                mScene = null;
-            }
-            mDestroy = true;
-            Executors.newSingleThreadExecutor().submit(new Runnable() {
-                @Override
-                public void run() {
-                    mListener.onGLResourceReleased();
-                }
-            });
-        }
-        return mPause > 0;
-    }
-
     void onDestroy() {
-        mDestroy = true;
+        mOnDestroyed = true;
         if (mScene != null) {
             mScene.stop();
         }
+        if (mReleased) {
+            mNeedRestore = false;
+            releaseScene();
+        } else {
+            mNeedRestore = true;
+        }
     }
 
-    interface MagicRendererListener {
-        void onGLResourceReleased();
+    void release() {
+        mReleased = true;
+        mNeedRestore = false;
+        if (mOnDestroyed) {
+            releaseScene();
+        }
+    }
+
+    private void releaseScene() {
+        if (mScene != null) {
+            mScene.release();
+            mScene = null;
+        }
     }
 
 }

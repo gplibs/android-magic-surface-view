@@ -17,12 +17,24 @@ public class SurfaceModel extends BaseModel {
     private int mRowLineCount;
     private float mWidth;
     private float mHeight;
+    private float mParentWidth;
+    private float mParentHeight;
     private boolean mDrawGrid = false;
+    private boolean mIsMulti = false;
 
     private float[] mTexCoord;
-    private GLParameter<FloatBuffer> mTexCoordBuffer = new GLAttributeParameter("a_tex_coord", 2, mBufferLock);
+    GLParameter<FloatBuffer> mTexCoordBuffer = new GLAttributeParameter("a_tex_coord", 2, mBufferLock);
 
     SurfaceModel(int colCount, int rowCount, float width, float height) {
+        mIsMulti = false;
+        update(colCount, rowCount, width, height);
+    }
+
+    SurfaceModel(int colCount, int rowCount, float width, float height, Vec offset, Vec parentSize) {
+        mIsMulti = true;
+        mOffset.copy(offset);
+        mParentWidth = parentSize.width();
+        mParentHeight = parentSize.height();
         update(colCount, rowCount, width, height);
     }
 
@@ -47,10 +59,12 @@ public class SurfaceModel extends BaseModel {
     }
 
     private void init() {
-        mPositions = new float[mColLineCount * mRowLineCount * 3];
+        if (!mIsMulti) {
+            mPositions = new float[mColLineCount * mRowLineCount * 3];
+            mNormals = new float[mColLineCount * mRowLineCount * 3];
+            mIndices = new short[(mRowLineCount - 1) * (mColLineCount * 2) + (mRowLineCount - 2) * 2];
+        }
         mColors = new float[mColLineCount * mRowLineCount * 4];
-        mNormals = new float[mColLineCount * mRowLineCount * 3];
-        mIndices = new short[(mRowLineCount - 1) * (mColLineCount * 2) + (mRowLineCount - 2) * 2];
         mTexCoord = new float[mColLineCount * mRowLineCount * 2];
 
         float startX = -mWidth / 2;
@@ -65,27 +79,35 @@ public class SurfaceModel extends BaseModel {
                 int i = r * mColLineCount + c;
                 float x = startX + offsetX * c;
                 float y = startY - offsetY * r;
-                setPosition(i, x, y, 0);
-                setNormal(i, 0, 0, 1);
-                setColor(i, 1, 1, 1, 1);
-                mTexCoord[i * 2] = (x + getWidth() / 2) / getWidth();
-                mTexCoord[i * 2 + 1] = 1 - (y + getHeight() / 2) / getHeight();
-                setNormal(i, 0, 0, 1);
-                if(r < mRowLineCount - 1) {
-                    mIndices[n++] = (short) i;
-                    mIndices[n++] = (short) (i + mColLineCount);
+                if (!mIsMulti) {
+                    setPosition(i, x, y, 0);
+                    setNormal(i, 0, 0, 1);
+                    if (r < mRowLineCount - 1) {
+                        mIndices[n++] = (short) i;
+                        mIndices[n++] = (short) (i + mColLineCount);
+                    }
+                    if (c == mColLineCount - 1 && r < mRowLineCount - 2) {
+                        mIndices[n++] = (short) (i + mColLineCount);
+                        mIndices[n++] = (short) (i + 1);
+                    }
                 }
-                if (c == mColLineCount - 1 && r < mRowLineCount - 2) {
-                    mIndices[n++] = (short) (i + mColLineCount);
-                    mIndices[n++] = (short) (i + 1);
+                setColor(i, 1, 1, 1, 1);
+                if (mIsMulti) {
+                    mTexCoord[i * 2] = (x + mOffset.x() + mParentWidth / 2) / mParentWidth;
+                    mTexCoord[i * 2 + 1] = 1 - (y + mOffset.y() + mParentHeight / 2) / mParentHeight;
+                } else {
+                    mTexCoord[i * 2] = (x + getWidth() / 2) / getWidth();
+                    mTexCoord[i * 2 + 1] = 1 - (y + getHeight() / 2) / getHeight();
                 }
             }
         }
-        preparePositions();
-        prepareColors();
-        prepareIndices();
-        prepareTexCoord();
-        prepareNormals();
+        if (!mIsMulti) {
+            preparePositions();
+            prepareIndices();
+            prepareNormals();
+            prepareColors();
+            prepareTexCoord();
+        }
     }
 
     /**
@@ -176,9 +198,11 @@ public class SurfaceModel extends BaseModel {
     }
 
     @Override
-    protected void runOnDraw() {
-        super.runOnDraw();
-        mTexCoordBuffer.runOnDraw();
+    void runOnDraw() {
+        if (!mIsMulti) {
+            super.runOnDraw();
+            mTexCoordBuffer.runOnDraw();
+        }
     }
 
     @Override
@@ -190,7 +214,7 @@ public class SurfaceModel extends BaseModel {
         }
     }
 
-    private void prepareTexCoord() {
+    void prepareTexCoord() {
         try {
             mBufferLock.lock();
             if (mTexCoordBuffer.value() == null) {

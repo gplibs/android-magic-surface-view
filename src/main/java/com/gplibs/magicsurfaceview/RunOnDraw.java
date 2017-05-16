@@ -11,7 +11,7 @@ class RunOnDraw {
         mRunOnDraw.offer(runnable);
     }
 
-    protected void runOnDraw() {
+    void runOnDraw() {
         Runnable r;
         while ((r = mRunOnDraw.poll()) != null) {
             r.run();

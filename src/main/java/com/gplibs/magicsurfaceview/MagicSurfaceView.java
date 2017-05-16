@@ -13,14 +13,6 @@ public class MagicSurfaceView extends GLSurfaceView {
 
     private boolean mHasNewScene = false;
     private MagicRenderer mRenderer = new MagicRenderer();
-    private MagicRenderer.MagicRendererListener mMagicRendererListener = new MagicRenderer.MagicRendererListener() {
-        @Override
-        public void onGLResourceReleased() {
-            if (!mHasNewScene) {
-                MagicSurfaceView.super.onPause();
-            }
-        }
-    };
 
     public MagicSurfaceView(Context context) {
         super(context);
@@ -37,7 +29,6 @@ public class MagicSurfaceView extends GLSurfaceView {
         setEGLConfigChooser(8, 8, 8, 8, 24, 0);
         getHolder().setFormat(PixelFormat.TRANSLUCENT);
         setZOrderOnTop(true);
-        mRenderer.setListener(mMagicRendererListener);
         setRenderer(mRenderer);
         setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
         getHolder().addCallback(new SurfaceHolder.Callback() {
@@ -66,23 +57,26 @@ public class MagicSurfaceView extends GLSurfaceView {
     }
 
     public MagicScene render(Object... sceneComponents) {
-        List<MagicSurface> surfaces = new ArrayList<>();
+        List<MagicBaseSurface> surfaces = new ArrayList<>();
         List<Light> lights = new ArrayList<>();
         int color = -1;
+        MagicSceneUpdater sceneUpdater = null;
         for (Object c : sceneComponents) {
-            if (c instanceof MagicSurface) {
-                surfaces.add((MagicSurface)c);
+            if (c instanceof MagicBaseSurface) {
+                surfaces.add((MagicBaseSurface)c);
             } else if (c instanceof Light) {
                 lights.add((Light) c);
             } else if (c instanceof Integer) {
                 color = (int) c;
+            } else if (c instanceof MagicSceneUpdater) {
+                sceneUpdater = (MagicSceneUpdater) c;
             } else {
                 throw new IllegalArgumentException();
             }
         }
         MagicSceneBuilder builder = new MagicSceneBuilder(this);
         if (surfaces.size() > 0) {
-            MagicSurface[] a = new MagicSurface[surfaces.size()];
+            MagicBaseSurface[] a = new MagicBaseSurface[surfaces.size()];
             surfaces.toArray(a);
             builder.addSurfaces(a);
         }
@@ -93,6 +87,9 @@ public class MagicSurfaceView extends GLSurfaceView {
         }
         if (color != -1) {
             builder.ambientColor(color);
+        }
+        if (sceneUpdater != null) {
+            builder.setUpdater(sceneUpdater);
         }
         MagicScene scene = builder.build();
         render(builder.build());
@@ -109,10 +106,20 @@ public class MagicSurfaceView extends GLSurfaceView {
         }
     }
 
+    public void release() {
+        mRenderer.release();
+    }
+
+    public void onDestroy() {
+        onPause();
+        release();
+        mRenderer = null;
+    }
+
     @Override
     public void onPause() {
+        super.onPause();
         mHasNewScene = false;
-        mRenderer.pause();
     }
 
     @Override
@@ -129,7 +136,7 @@ public class MagicSurfaceView extends GLSurfaceView {
                         MagicSurfaceView.super.setVisibility(visibility);
                     }
                 }
-            }, 15);
+            }, 50);
         }
     }
 }

@@ -9,6 +9,8 @@ import java.util.List;
 
 public class MagicScene extends RunOnDraw {
 
+    private final float NEAR = 0.1f;
+
     MagicSurfaceView mSurfaceView;
 
     private Rect mSceneViewRect;
@@ -23,12 +25,12 @@ public class MagicScene extends RunOnDraw {
     private int[] mTextureIds;
 
     private MatrixManager mMatrixManager = new MatrixManager();
-    private float mDefaultCameraZ = 5;
-    private Vec mCameraPosition = new Vec(0, 0, mDefaultCameraZ);
+    private float mCameraZ = 5;
+    private Vec mCameraPosition = new Vec(0, 0, mCameraZ);
     private Vec mCameraCenter = new Vec(0, 0, 0);
     private Vec mCameraUp = new Vec(0, 1, 0);
 
-    List<MagicSurface> mSurfaces = new ArrayList<>();
+    List<MagicBaseSurface> mSurfaces = new ArrayList<>();
     List<Light> mLights = new ArrayList<>();
     GLParameter<Vec> mAmbientColor = new GLUniformParameter<Vec>("u_ambient_color").value(new Vec(1.f, 1.f, 1.f, 1.f));
     private MagicSceneUpdater mUpdater;
@@ -70,11 +72,11 @@ public class MagicScene extends RunOnDraw {
      * @param index 索引
      * @return
      */
-    public MagicSurface getSurface(int index) {
+    public <T extends MagicBaseSurface> T getSurface(int index) {
         if (index < 0 || index > mSurfaces.size() - 1) {
             return null;
         }
-        return mSurfaces.get(index);
+        return (T) mSurfaces.get(index);
     }
 
     /**
@@ -100,6 +102,22 @@ public class MagicScene extends RunOnDraw {
         outPos.copy(mCameraPosition);
     }
 
+    /**
+     * 设置 摄像机z轴位置
+     * @param cameraZ z轴坐标 (默认值为5 值越小,透视效果越明显，不能小于0.1)
+     */
+    public void setCameraZ(float cameraZ) {
+        if (cameraZ < NEAR) {
+            throw new IllegalArgumentException("cameraZ required greater than 0.1");
+        }
+        mCameraZ = cameraZ;
+        if (mCameraPosition.y() != cameraZ && mCameraPosition.x() == 0 && mCameraPosition.y() == 0) {
+            mCameraPosition.z(cameraZ);
+            updateCamera();
+        }
+        updateFrustum();
+    }
+
     void setAmbientColor(int color) {
         mAmbientColor.value().setColor(color);
         mAmbientColor.refresh();
@@ -117,15 +135,6 @@ public class MagicScene extends RunOnDraw {
         updateCamera();
     }
 
-    void setDefaultCameraZ(float cameraZ) {
-        mDefaultCameraZ = cameraZ;
-        if (mCameraPosition.y() != cameraZ && mCameraPosition.x() == 0 && mCameraPosition.y() == 0) {
-            mCameraPosition.z(cameraZ);
-            updateCamera();
-        }
-        updateFrustum();
-    }
-
     boolean isReady() {
         return isPrepared() && mInited;
     }
@@ -139,7 +148,7 @@ public class MagicScene extends RunOnDraw {
         }
         mIsPreparing = true;
         try {
-            for (MagicSurface s : mSurfaces) {
+            for (MagicBaseSurface<?> s : mSurfaces) {
                 s.prepare();
             }
             updateCamera();
@@ -153,7 +162,7 @@ public class MagicScene extends RunOnDraw {
     private boolean isPrepared() {
         if (!mIsPrepared) {
             boolean prepared = true;
-            for (MagicSurface s : mSurfaces) {
+            for (MagicBaseSurface<?> s : mSurfaces) {
                 if (!s.isPrepared()) {
                     prepared = false;
                     break;
@@ -190,7 +199,7 @@ public class MagicScene extends RunOnDraw {
             GLES20.glGenTextures(mTextureIds.length, mTextureIds, 0);
             int textureIndex = GLES20.GL_TEXTURE0;
             for (int i = 0; i < mSurfaces.size(); ++i) {
-                MagicSurface s = mSurfaces.get(i);
+                MagicBaseSurface<?> s = mSurfaces.get(i);
                 s.setIndex(i, textureIndex);
                 s.setProgram(mProgram);
 
@@ -243,7 +252,7 @@ public class MagicScene extends RunOnDraw {
             }
         }
         if (mSurfaces != null) {
-            for (MagicSurface s : mSurfaces) {
+            for (MagicBaseSurface<?> s : mSurfaces) {
                 s.restore();
             }
         }
@@ -251,7 +260,7 @@ public class MagicScene extends RunOnDraw {
 
     void stop() {
         if (mSurfaces != null) {
-            for (MagicSurface s : mSurfaces) {
+            for (MagicBaseSurface<?> s : mSurfaces) {
                 s.stop();
             }
         }
@@ -260,20 +269,9 @@ public class MagicScene extends RunOnDraw {
         }
     }
 
-    void clearGLResource() {
-        if (mTextureIds != null) {
-            GLES20.glDeleteTextures(mTextureIds.length, mTextureIds, 0);
-            mTextureIds = null;
-        }
-        if (mProgram != null) {
-            mProgram.delete();
-            mProgram = null;
-        }
-    }
-
-    public void release() {
+    void release() {
         stop();
-        for (MagicSurface s : mSurfaces) {
+        for (MagicBaseSurface<?> s : mSurfaces) {
             s.release();
         }
     }
@@ -299,17 +297,16 @@ public class MagicScene extends RunOnDraw {
             w = ratio;
             h = 1;
         }
-        float near = 0.1f;
-        float nh = near * h / mDefaultCameraZ;
+        float nh = NEAR * h / mCameraZ;
         float nw = w * nh / h;
         mSceneSize.setSize(w, h);
-        mMatrixManager.frustumM(nw, nh, near, 10);
+        mMatrixManager.frustumM(nw, nh, NEAR, 10);
     }
 
     void draw() {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
         if (mSurfaces != null) {
-            for (MagicSurface s : mSurfaces) {
+            for (MagicBaseSurface<?> s : mSurfaces) {
                 s.draw(mMatrixManager);
             }
         }
@@ -325,7 +322,7 @@ public class MagicScene extends RunOnDraw {
 
     private int getTextureCount() {
         int c = 0;
-        for (MagicSurface s : mSurfaces) {
+        for (MagicBaseSurface<?> s : mSurfaces) {
             c += (1 + s.mTextures.size());
         }
         return c;

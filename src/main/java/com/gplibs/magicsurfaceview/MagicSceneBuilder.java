@@ -19,11 +19,11 @@ public class MagicSceneBuilder {
         return this;
     }
 
-    public MagicSceneBuilder addSurfaces(MagicSurface... objects) {
+    public MagicSceneBuilder addSurfaces(MagicBaseSurface... objects) {
         if (objects == null) {
             return this;
         }
-        for (MagicSurface s : objects) {
+        for (MagicBaseSurface s : objects) {
             s.mScene = mScene;
             mScene.mSurfaces.add(s);
         }

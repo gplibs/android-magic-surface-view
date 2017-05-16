@@ -18,10 +18,10 @@ public abstract class BaseModel extends RunOnDraw {
     private float[] mMatrix;
     protected ReentrantLock mBufferLock = new ReentrantLock();
 
-    private GLParameter<FloatBuffer> mPositionsBuffer = new GLAttributeParameter("a_position", 3, mBufferLock);
+    protected GLParameter<FloatBuffer> mPositionsBuffer = new GLAttributeParameter("a_position", 3, mBufferLock);
     protected ShortBuffer mIndicesBuffer;
-    private GLParameter<FloatBuffer> mNormalsBuffer = new GLAttributeParameter("a_normal", 3, mBufferLock);
-    private GLParameter<FloatBuffer> mColorsBuffer = new GLAttributeParameter("a_color", 4, mBufferLock);
+    protected GLParameter<FloatBuffer> mNormalsBuffer = new GLAttributeParameter("a_normal", 3, mBufferLock);
+    GLParameter<FloatBuffer> mColorsBuffer = new GLAttributeParameter("a_color", 4, mBufferLock);
 
     public BaseModel() {
         mMatrix = new float[16];
@@ -39,7 +39,7 @@ public abstract class BaseModel extends RunOnDraw {
     }
 
     @Override
-    protected void runOnDraw() {
+    void runOnDraw() {
         super.runOnDraw();
         mPositionsBuffer.runOnDraw();
         mNormalsBuffer.runOnDraw();
