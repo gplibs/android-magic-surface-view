@@ -359,7 +359,7 @@ public class MyMatrixUpdater extends MagicSurfaceMatrixUpdater {
 
 <br />
 
-_**6. MagicMultiSurfaceUpdater**_
+_**7. MagicMultiSurfaceUpdater**_
 
 MagicMultiSurfaceUpdater 对 MagicMultiSurface 中每个子模型进行矩阵变换及颜色值修改，
 
