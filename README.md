@@ -8,7 +8,7 @@ _gradle:_
 
 ```Gradle
 dependencies {
-    compile 'com.gplibs:magic-surface-view:1.1.0'
+    compile 'com.gplibs:magic-surface-view:1.1.1'
 }
 ```
 
