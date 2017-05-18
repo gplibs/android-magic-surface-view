@@ -43,7 +43,7 @@ abstract class GLParameter<T> extends RunOnDraw {
     }
 
     void refresh() {
-        if (mProgram != null && mProgram.isGLThread()) {
+        if (mProgram != null && !mProgram.isDeleted() && mProgram.isGLThread()) {
             updateValue();
         } else {
             if (runOnDrawSize() > 0) {

@@ -245,6 +245,7 @@ public class MagicScene extends RunOnDraw {
 
     void restore() {
         init(mVertexShader, mFragmentShader);
+        init();
         mAmbientColor.refresh();
         if (mLights != null) {
             for (Light l : mLights) {
@@ -267,6 +268,7 @@ public class MagicScene extends RunOnDraw {
         if (mUpdater != null) {
             mUpdater.stop();
         }
+        mProgram.delete();
     }
 
     void release() {

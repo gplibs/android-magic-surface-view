@@ -6,6 +6,7 @@ class Program {
 
     int handle;
     private long mGLThreadId;
+    private boolean mDeleted = false;
 
     Program(String vShader, String fShader) {
         mGLThreadId = Thread.currentThread().getId();
@@ -18,8 +19,15 @@ class Program {
     }
 
     void delete() {
-        GLES20.glDeleteProgram(handle);
-        GLUtil.checkGlError("glDeleteProgram");
+        if (isGLThread()) {
+            GLES20.glDeleteProgram(handle);
+            GLUtil.checkGlError("glDeleteProgram");
+        }
+        mDeleted = true;
+    }
+
+    boolean isDeleted() {
+        return mDeleted;
     }
 
     boolean isGLThread() {
