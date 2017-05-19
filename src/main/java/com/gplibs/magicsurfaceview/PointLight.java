@@ -30,9 +30,9 @@ public class PointLight extends Light {
 
     /**
      * 设置光源位置
-     * @param x
-     * @param y
-     * @param z
+     * @param x 场景坐标x
+     * @param y 场景坐标y
+     * @param z 场景坐标z
      */
     public void setPosition(float x, float y, float z) {
         mPosition.value().setXYZ(x, y, z);
@@ -41,7 +41,7 @@ public class PointLight extends Light {
 
     /**
      * 设置光源位置
-     * @param pos
+     * @param pos 光源位置
      */
     public void setPosition(Vec pos) {
         mPosition.value().copy(pos);

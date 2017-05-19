@@ -74,7 +74,7 @@ public abstract class MagicBaseSurface<T> {
     /**
      * 设置模型光泽度
      * @param shininess 光泽度 (默认为64)
-     * @return
+     * @return Surface
      */
     public T setShininess(float shininess) {
         mShininess.value(shininess);
@@ -84,7 +84,7 @@ public abstract class MagicBaseSurface<T> {
     /**
      * 设置是否绘制此MagicSurface
      * @param visible 是否绘制 (默认为true)
-     * @return
+     * @return Surface
      */
     public T setVisible(boolean visible) {
         this.mVisible = visible;
@@ -95,7 +95,7 @@ public abstract class MagicBaseSurface<T> {
      * 设置是否开启深度测试
      * 开启后会按三维坐标正常显示，如果关闭，绘制时将覆盖之前已经绘制的东西
      * @param enableDepthTest (默认为true)
-     * @return
+     * @return Surface
      */
     public T setEnableDepthTest(boolean enableDepthTest) {
         this.mEnableDepthTest = enableDepthTest;
@@ -105,7 +105,7 @@ public abstract class MagicBaseSurface<T> {
     /**
      * 是否开启混合，为透明对象时需开启.
      * @param enableBlend (默认为true)
-     * @return
+     * @return Surface
      */
     public T setEnableBlend(boolean enableBlend) {
         this.mEnableBlend = enableBlend;

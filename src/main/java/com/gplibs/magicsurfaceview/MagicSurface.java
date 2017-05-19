@@ -43,7 +43,7 @@ public class MagicSurface extends MagicBaseSurface<MagicSurface> {
     /**
      * 设置模型更新器
      * @param updater 模型更新器
-     * @return
+     * @return Surface
      */
     public MagicSurface setModelUpdater(MagicSurfaceModelUpdater updater) {
         this.mModelUpdater = updater;
@@ -56,7 +56,7 @@ public class MagicSurface extends MagicBaseSurface<MagicSurface> {
     /**
      * 设置矩阵更新器
      * @param updater 矩阵更新器
-     * @return
+     * @return Surface
      */
     public MagicSurface setMatrixUpdater(MagicSurfaceMatrixUpdater updater) {
         this.mMatrixUpdater = updater;
@@ -70,7 +70,7 @@ public class MagicSurface extends MagicBaseSurface<MagicSurface> {
      * 设置网格模型密度
      * @param rowLineCount 行数 (默认为30)
      * @param colLineCount 列数 (默认为30)
-     * @return
+     * @return Surface
      */
     public MagicSurface setGrid(int rowLineCount, int colLineCount) {
         mRowLineCount = rowLineCount;
@@ -84,7 +84,7 @@ public class MagicSurface extends MagicBaseSurface<MagicSurface> {
     /**
      * 绘制时是否只绘制网格
      * @param drawGrid 是否绘制网格 (默认为false)
-     * @return
+     * @return Surface
      */
     public MagicSurface drawGrid(boolean drawGrid) {
         mDrawGrid = drawGrid;

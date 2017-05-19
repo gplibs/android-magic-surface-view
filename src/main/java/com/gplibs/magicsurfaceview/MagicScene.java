@@ -40,7 +40,7 @@ public class MagicScene extends RunOnDraw {
 
     /**
      * 获取MagicSurfaceView在场景中宽度
-     * @return
+     * @return Surface
      */
     public float getWidth() {
         return mSceneSize.width();
@@ -48,7 +48,7 @@ public class MagicScene extends RunOnDraw {
 
     /**
      * 获取MagicSurfaceView在场景中高度
-     * @return
+     * @return Surface
      */
     public float getHeight() {
         return mSceneSize.height();
@@ -57,8 +57,8 @@ public class MagicScene extends RunOnDraw {
     /**
      * 获取 某光源
      * @param index 光源索引
-     * @param <T>
-     * @return
+     * @param <T> LightType
+     * @return Surface
      */
     public <T extends Light> T getLight(int index) {
         if (index < 0 || index > mLights.size() - 1) {
@@ -68,9 +68,10 @@ public class MagicScene extends RunOnDraw {
     }
 
     /**
-     * 获取某 场景中某 MagicSurface 对象
+     * * 获取某 场景中某 MagicSurface 对象
      * @param index 索引
-     * @return
+     * @param <T> Surface Type
+     * @return Surface
      */
     public <T extends MagicBaseSurface> T getSurface(int index) {
         if (index < 0 || index > mSurfaces.size() - 1) {
